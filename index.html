@@ -1,0 +1,46 @@
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パスワード認証</title>
+</head>
+<body>
+    <h2>ログイン</h2>
+    <form id="loginForm">
+        <label for="password">パスワード:</label>
+        <input type="password" id="password" required>
+        <button type="submit">ログイン</button>
+    </form>
+
+    <script>
+        // パスワードをハッシュ化して保存したもの（例: 'myPassword'をハッシュ化した値）
+        const storedHashedPassword = '5704fe4426be66ce56e1184f09b3a75c36e6ff74ba493539f729de4c58d1a2b0'; // SHA-256ハッシュ
+
+        // パスワードをハッシュ化するための関数
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => ('00' + b.toString(16)).slice(-2)).join('');
+        }
+
+        // フォームの送信イベントを処理
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // フォームのデフォルトの送信を防ぐ
+
+            const userPassword = document.getElementById('password').value;
+            const hashedPassword = await hashPassword(userPassword);
+
+            // ハッシュを確認
+            if (hashedPassword === storedHashedPassword) {
+                // 認証成功時に別のURLに転送
+                window.location.href = 'https://toyotaschool-my.sharepoint.com/:v:/g/personal/20173945_toyota_ed_jp/ESytS9jbwllLqnXv6IotSjUBAbsbGgHtxe8clpYkrXWl-g?e=wwnTBG';
+            } else {
+                // 誤ったパスワードに対する警告
+                alert('パスワードが間違っています。');
+            }
+        });
+    </script>
+</body>
+</html>
