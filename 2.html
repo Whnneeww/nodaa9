@@ -6,22 +6,36 @@
     <title>動画に全てノイズを追加</title>
 </head>
 <body>
-    <video id="video" controls>
-        <source src="アップロードした動画.mp4" type="video/mp4">
+    <input type="file" id="fileInput" accept="video/mp4">
+    <video id="video" controls style="max-width: 100%; display: none;">
+        <source id="videoSource" src="" type="video/mp4">
         お使いのブラウザは動画タグに対応していません。
     </video>
     <input type="range" id="noiseLevel" min="0" max="255" step="1" value="128">
     <label for="noiseLevel">ノイズレベル</label>
-    <button id="downloadBtn">動画をダウンロード</button>
+    <button id="downloadBtn" style="display: none;">動画をダウンロード</button>
     <canvas id="canvas" style="display:none;"></canvas>
 
     <script>
+        const fileInput = document.getElementById('fileInput');
         const video = document.getElementById('video');
+        const videoSource = document.getElementById('videoSource');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const noiseLevelSlider = document.getElementById('noiseLevel');
         const downloadBtn = document.getElementById('downloadBtn');
-        
+
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                videoSource.src = url;
+                video.style.display = 'block';
+                video.load();
+                downloadBtn.style.display = 'block';
+            }
+        });
+
         video.addEventListener('play', function() {
             draw(video);
         });
