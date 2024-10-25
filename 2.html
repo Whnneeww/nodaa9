@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>動画ノイズ加工</title>
+    <style>
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" id="fileInput" accept="video/mp4">
+    <video id="video" width="640" height="360" controls></video>
+    <canvas id="canvas" width="640" height="360"></canvas>
+    <input type="range" id="noiseLevel" min="0" max="1" step="0.01" value="0.5">
+    <button id="downloadBtn">ダウンロード</button>
+    
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const noiseLevelInput = document.getElementById('noiseLevel');
+        const fileInput = document.getElementById('fileInput');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let noiseLevel = noiseLevelInput.value;
+
+        noiseLevelInput.addEventListener('input', (event) => {
+            noiseLevel = event.target.value;
+        });
+
+        function addNoise(imageData) {
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const noise = (Math.random() - 0.5) * 255 * noiseLevel;
+                data[i] += noise;     // 赤
+                data[i + 1] += noise; // 緑
+                data[i + 2] += noise; // 青
+            }
+            return imageData;
+        }
+
+        function processVideo() {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            imageData = addNoise(imageData);
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        function draw() {
+            if (video.paused || video.ended) return;
+            processVideo();
+            requestAnimationFrame(draw);
+        }
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                video.src = url;
+                video.play();
+                draw();
+            }
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            const processedCanvasData = canvas.toDataURL('video/mp4');
+            const a = document.createElement('a');
+            a.href = processedCanvasData;
+            a.download = 'processed_video.mp4';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+    </script>
+</body>
+</html>
