@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バイナリを16進数に変換</title>
+</head>
+<body>
+    <h1>アップロードしたtxtファイルを16進数に変換します</h1>
+    <input type="file" id="fileInput" accept=".txt">
+    <button id="convertButton">変換</button>
+    <pre id="output"></pre>
+    <script>
+        document.getElementById('convertButton').addEventListener('click', function() {
+            const fileInput = document.getElementById('fileInput');
+
+            if (fileInput.files.length === 0) {
+                alert('ファイルを選択してください！');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const binaryString = event.target.result.trim(); // アップロードされたファイルの内容
+
+                // 四桁ずつに分割して16進数に変換
+                let hexString = '';
+                for (let i = 0; i < binaryString.length; i += 4) {
+                    const binarySegment = binaryString.substring(i, i + 4).padStart(4, '0'); // 4桁にパディング
+                    const decimalValue = parseInt(binarySegment, 2);
+                    const hexValue = decimalValue.toString(16).padStart(1, '0'); // 先頭に0を追加（1桁の場合）
+                    hexString += hexValue;
+                }
+
+                // 結果を表示
+                document.getElementById('output').textContent = '16進数:\n' + hexString.toUpperCase();
+            };
+
+            reader.readAsText(file); // ファイルをテキストとして読み込む
+        });
+    </script>
+</body>
+</html>
