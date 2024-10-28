@@ -25,6 +25,7 @@
             const folder = zipContent.folder("texts/run_dam/font");
             const imageFiles = [];
 
+            // 画像ファイルのリストを取得
             folder.forEach((relativePath, file) => {
                 if (!file.dir && /\.(png|jpg|jpeg|gif)$/i.test(relativePath)) {
                     imageFiles.push(relativePath);
@@ -36,6 +37,13 @@
 
             // 新しいzipの作成
             const newZip = new JSZip();
+
+            // 元のファイルをそのまま追加
+            zipContent.forEach((relativePath, file) => {
+                newZip.file(relativePath, file.async("blob"));
+            });
+
+            // シャッフルした画像ファイルを新しいZIPに追加
             shuffledFiles.forEach(fileName => {
                 newZip.file(fileName, folder.file(fileName).async("blob"));
             });
