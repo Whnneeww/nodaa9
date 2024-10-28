@@ -10,7 +10,6 @@
     <h1>ZIPファイルのアップロードと画像シャッフル</h1>
     <input type="file" id="zipInput" accept=".zip">
     <button id="shuffleButton">シャッフル</button>
-    <a id="downloadLink" style="display: none;">ダウンロード</a>
 
     <script>
         document.getElementById('shuffleButton').onclick = async () => {
@@ -23,12 +22,15 @@
             const zipFile = input.files[0];
             const newZipFile = await shuffleImages(zipFile);
 
-            // 生成されたZIPファイルをダウンロードするリンクを作成
-            const downloadLink = document.getElementById('downloadLink');
-            downloadLink.href = URL.createObjectURL(newZipFile);
-            downloadLink.download = "shuffled_images.zip";
-            downloadLink.textContent = "シャッフルしたZIPをダウンロード";
-            downloadLink.style.display = 'block';
+            // 自動でダウンロード
+            const url = URL.createObjectURL(newZipFile);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "shuffled_images.zip";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         };
 
         async function shuffleImages(zipFile) {
