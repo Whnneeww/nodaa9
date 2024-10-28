@@ -3,58 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZIPファイル画像シャッフル</title>
+    <title>ZIPファイルのシャッフル</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
-    <input type="file" id="upload" accept=".zip">
-    <button id="shuffle">シャッフルしてダウンロード</button>
+    <h1>ZIPファイルのアップロードと画像シャッフル</h1>
+    <input type="file" id="zipInput" accept=".zip">
+    <button id="shuffleButton">シャッフル</button>
+    <a id="downloadLink" style="display: none;">ダウンロード</a>
 
     <script>
-        document.getElementById('shuffle').addEventListener('click', async () => {
-            const fileInput = document.getElementById('upload');
-            if (fileInput.files.length === 0) {
-                alert('zipファイルをアップロードしてください。');
+        document.getElementById('shuffleButton').onclick = async () => {
+            const input = document.getElementById('zipInput');
+            if (input.files.length === 0) {
+                alert("ZIPファイルを選択してください！");
                 return;
             }
 
-            const zip = new JSZip();
-            const file = fileInput.files[0];
-            const content = await file.arrayBuffer();
-            const zipContent = await zip.loadAsync(content);
-            const folder = zipContent.folder("texts/run_dam/font");
-            const imageFiles = [];
+            const zipFile = input.files[0];
+            const newZipFile = await shuffleImages(zipFile);
 
-            // 画像ファイルのリストを取得
-            folder.forEach((relativePath, file) => {
-                if (!file.dir && /\.(png|jpg|jpeg|gif)$/i.test(relativePath)) {
-                    imageFiles.push(relativePath);
-                }
+            // 生成されたZIPファイルをダウンロードするリンクを作成
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = URL.createObjectURL(newZipFile);
+            downloadLink.download = "shuffled_images.zip";
+            downloadLink.textContent = "シャッフルしたZIPをダウンロード";
+            downloadLink.style.display = 'block';
+        };
+
+        async function shuffleImages(zipFile) {
+            const zip = await JSZip.loadAsync(zipFile);
+            const fontFolder = zip.folder("texts/run_dam/font");
+
+            // フォルダ内のすべての画像ファイルを取得
+            const fileNames = Object.keys(fontFolder.files);
+            const fileDataPromises = fileNames.map(fileName => fontFolder.file(fileName).async("blob"));
+
+            // データを待つ
+            const fileDataArray = await Promise.all(fileDataPromises);
+
+            // 名前とデータをシャッフル
+            const shuffledNames = shuffleArray(fileNames);
+            const shuffledDataArray = shuffleArray(fileDataArray);
+
+            // シャッフルされた名前とデータを元のフォルダに追加（上書き）
+            shuffledNames.forEach((name, index) => {
+                fontFolder.file(name, shuffledDataArray[index]);
             });
 
-            // シャッフル処理
-            const shuffledFiles = imageFiles.sort(() => Math.random() - 0.5);
+            // 新しいZIPファイルを生成
+            const newZipFile = await zip.generateAsync({ type: "blob" });
+            return newZipFile;
+        }
 
-            // 新しいzipの作成
-            const newZip = new JSZip();
-
-            // 元のファイルをそのまま追加
-            zipContent.forEach((relativePath, file) => {
-                newZip.file(relativePath, file.async("blob"));
-            });
-
-            // シャッフルした画像ファイルを新しいZIPに追加
-            shuffledFiles.forEach(fileName => {
-                newZip.file(fileName, folder.file(fileName).async("blob"));
-            });
-
-            const contentBlob = await newZip.generateAsync({ type: "blob" });
-            const downloadLink = document.createElement('a');
-            downloadLink.href = URL.createObjectURL(contentBlob);
-            downloadLink.download = 'mctxts.mcpack';
-            downloadLink.click();
-            URL.revokeObjectURL(downloadLink.href);
-        });
+        // 配列をシャッフルする関数
+        function shuffleArray(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
     </script>
 </body>
 </html>
