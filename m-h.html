@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZIPファイル画像シャッフル</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+    <input type="file" id="upload" accept=".zip">
+    <button id="shuffle">シャッフルしてダウンロード</button>
+
+    <script>
+        document.getElementById('shuffle').addEventListener('click', async () => {
+            const fileInput = document.getElementById('upload');
+            if (fileInput.files.length === 0) {
+                alert('zipファイルをアップロードしてください。');
+                return;
+            }
+
+            const zip = new JSZip();
+            const file = fileInput.files[0];
+            const content = await file.arrayBuffer();
+            const zipContent = await zip.loadAsync(content);
+            const folder = zipContent.folder("texts/run_dam/font");
+            const imageFiles = [];
+
+            folder.forEach((relativePath, file) => {
+                if (!file.dir && /\.(png|jpg|jpeg|gif)$/i.test(relativePath)) {
+                    imageFiles.push(relativePath);
+                }
+            });
+
+            // シャッフル処理
+            const shuffledFiles = imageFiles.sort(() => Math.random() - 0.5);
+
+            // 新しいzipの作成
+            const newZip = new JSZip();
+            shuffledFiles.forEach(fileName => {
+                newZip.file(fileName, folder.file(fileName).async("blob"));
+            });
+
+            const contentBlob = await newZip.generateAsync({ type: "blob" });
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(contentBlob);
+            downloadLink.download = 'mctxts.mcpack';
+            downloadLink.click();
+            URL.revokeObjectURL(downloadLink.href);
+        });
+    </script>
+</body>
+</html>
