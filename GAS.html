@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCIIコードコピー</title>
+</head>
+<body>
+    <h1>ASCIIコードを入力してコピーしよう！</h1>
+    <input type="text" id="asciiInput" placeholder="ASCIIコードを入力ください">
+    <button id="copyButton">コピー</button>
+
+    <script>
+        document.getElementById('copyButton').addEventListener('click', function() {
+            const asciiCode = document.getElementById('asciiInput').value;
+            const char = String.fromCharCode(asciiCode);
+            
+            // クリップボードにコピー
+            navigator.clipboard.writeText(char).then(() => {
+                alert(`"${char}" をクリップボードにコピーしました！`);
+            }).catch(err => {
+                console.error('クリップボードへのコピーに失敗しました: ', err);
+            });
+        });
+    </script>
+</body>
+</html>
